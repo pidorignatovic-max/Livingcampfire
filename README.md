@@ -1,30 +1,17 @@
 # Living Campfires
 
-A Minecraft Java Edition 1.21.4 Fabric mod adding seven campfire variants and portable campfire items.
+A Fabric mod scaffold for Minecraft Java 1.21.4, Fabric API 0.119.4 and Java 21.
 
-## Target environment
-- Minecraft: 1.21.4
-- Fabric Loader: 0.16.9+
-- Fabric API: 0.119.4+1.21.4
-- Java: 21
-
-## Project status
-This repository is the initial source scaffold. The source has not yet been confirmed by a successful Gradle build or an in-game test. Do not treat it as a release-ready mod until those checks pass.
+## Current implementation
+- Seven custom campfire block variants based on vanilla `CampfireBlock`.
+- Seven portable campfire items.
+- Warm: regeneration; Herbal Speed: speed; Herbal Defense: resistance.
+- Herbal Utility: jump boost; Herbal Mystic: luck and night vision.
+- Frost: slowness; Signal: glowing and extra smoke.
+- Portable items apply effects while held in either hand and lose durability every 40 ticks.
 
 ## Build
-Install JDK 21, then run:
-- Linux/macOS: `./gradlew build`
-- Windows: `gradlew.bat build`
+Requires JDK 21 and internet access for Gradle dependencies. A Gradle wrapper and original textures are not included in this recovery archive. Run `gradle build`; output should be in `build/libs/`.
 
-The built JAR will be in `build/libs/`.
-
-## Planned variants
-- Warm: regeneration near a lit campfire.
-- Herbal Speed: speed.
-- Herbal Defense: defensive effect.
-- Herbal Utility: utility effects.
-- Herbal Mystic: special effect.
-- Frost: cold-themed effect.
-- Signal: extra smoke and glowing marker effect.
-
-The exact balance and the original effects for the herbal variants are not fully recovered yet.
+## Status
+This is a reconstruction and has not been verified by a successful Gradle build or in-game test. Effects beyond Warm and Signal are provisional. Test cooking, extinguishing, relighting, block drops, multiplayer and effect balance before release.
