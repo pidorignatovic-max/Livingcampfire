@@ -1,42 +1,63 @@
 package com.crosskai.livingcampfires;
 
 import net.fabricmc.api.ModInitializer;
-import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
+import net.minecraft.block.AbstractBlock;
+import net.minecraft.block.Block;
+import net.minecraft.block.BlockState;
+import net.minecraft.block.Blocks;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroups;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
+import net.minecraft.registry.RegistryKey;
+import net.minecraft.registry.RegistryKeys;
 import net.minecraft.util.Identifier;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.server.world.ServerWorld;
 
-public final class LivingCampfires implements ModInitializer {
+public class LivingCampfires implements ModInitializer {
     public static final String MOD_ID = "livingcampfires";
-    public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
-
-    public static final Item WARM_CAMPFIRE = registerItem("warm_campfire", new Item(new Item.Settings()));
-    public static final Item HERBAL_SPEED_CAMPFIRE = registerItem("herbal_speed_campfire", new Item(new Item.Settings()));
-    public static final Item HERBAL_DEFENSE_CAMPFIRE = registerItem("herbal_defense_campfire", new Item(new Item.Settings()));
-    public static final Item HERBAL_UTILITY_CAMPFIRE = registerItem("herbal_utility_campfire", new Item(new Item.Settings()));
-    public static final Item HERBAL_MYSTIC_CAMPFIRE = registerItem("herbal_mystic_campfire", new Item(new Item.Settings()));
-    public static final Item FROST_CAMPFIRE = registerItem("frost_campfire", new Item(new Item.Settings()));
-    public static final Item SIGNAL_CAMPFIRE = registerItem("signal_campfire", new Item(new Item.Settings()));
-
-    private static Item registerItem(String name, Item item) {
-        return Registry.register(Registries.ITEM, Identifier.of(MOD_ID, name), item);
-    }
 
     @Override
     public void onInitialize() {
-        ItemGroupEvents.modifyEntriesEvent(ItemGroups.FUNCTIONAL).register(entries -> {
-            entries.add(WARM_CAMPFIRE);
-            entries.add(HERBAL_SPEED_CAMPFIRE);
-            entries.add(HERBAL_DEFENSE_CAMPFIRE);
-            entries.add(HERBAL_UTILITY_CAMPFIRE);
-            entries.add(HERBAL_MYSTIC_CAMPFIRE);
-            entries.add(FROST_CAMPFIRE);
-            entries.add(SIGNAL_CAMPFIRE);
-        });
-        LOGGER.info("Living Campfires initialized (initial scaffold).");
+        for (CampfireVariant variant : CampfireVariant.values()) registerVariant(variant);
+        ServerTickEvents.END_WORLD_TICK.register(LivingCampfires::tickWorld);
+        System.out.println("[Living Campfires] Loaded 7 campfire blocks and 7 portable items.");
+    }
+
+    private static void registerVariant(CampfireVariant variant) {
+        String path = variant.name().toLowerCase();
+        Identifier blockId = Identifier.of(MOD_ID, path + "_campfire");
+        Identifier itemId = Identifier.of(MOD_ID, "portable_" + path + "_campfire");
+        LivingCampfireBlock block = Registry.register(Registries.BLOCK, blockId,
+            new LivingCampfireBlock(variant, true, 2,
+                AbstractBlock.Settings.copy(Blocks.CAMPFIRE).registryKey(RegistryKey.of(RegistryKeys.BLOCK, blockId))));
+        Registry.register(Registries.ITEM, blockId,
+            new BlockItem(block, new Item.Settings().registryKey(RegistryKey.of(RegistryKeys.ITEM, blockId))));
+        Registry.register(Registries.ITEM, itemId,
+            new PortableCampfireItem(variant, new Item.Settings().registryKey(RegistryKey.of(RegistryKeys.ITEM, itemId))));
+    }
+
+    private static void tickWorld(ServerWorld world) {
+        if (world.getTime() % 40L != 0L) return;
+        for (PlayerEntity player : world.getPlayers()) {
+            BlockPos center = player.getBlockPos();
+            int radius = 5;
+            for (BlockPos pos : BlockPos.iterate(center.add(-radius, -3, -radius), center.add(radius, 3, radius))) {
+                BlockState state = world.getBlockState(pos);
+                if (!(state.getBlock() instanceof LivingCampfireBlock campfire) || !state.get(LivingCampfireBlock.LIT)) continue;
+                if (player.squaredDistanceTo(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5) > 25.0) continue;
+                EffectApplier.apply(campfire.getVariant(), player, world);
+                if (campfire.getVariant() == CampfireVariant.SIGNAL) {
+                    world.spawnParticles(net.minecraft.particle.ParticleTypes.CAMPFIRE_COSY_SMOKE,
+                        pos.getX() + 0.5, pos.getY() + 0.8, pos.getZ() + 0.5, 4, 0.25, 0.2, 0.25, 0.01);
+                    player.addStatusEffect(new net.minecraft.entity.effect.StatusEffectInstance(
+                        net.minecraft.entity.effect.StatusEffects.GLOWING, 100, 0, true, false, true));
+                }
+            }
+        }
     }
 }
