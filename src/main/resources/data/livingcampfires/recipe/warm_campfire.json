@@ -1,0 +1,1 @@
+{"type":"minecraft:crafting_shaped","pattern":["S S","SCS","LLL"],"key":{"S":{"item":"minecraft:stick"},"C":{"item":"minecraft:charcoal"},"L":{"tag":"minecraft:logs"}},"result":{"id":"livingcampfires:warm_campfire","count":1}}
