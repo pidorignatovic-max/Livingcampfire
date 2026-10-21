@@ -3,17 +3,16 @@
   "id": "livingcampfires",
   "version": "${version}",
   "name": "Living Campfires",
-  "description": "Vanilla-inspired campfire variants with unique effects and portable versions.",
+  "description": "Vanilla-inspired campfires with unique effects and portable variants.",
   "authors": ["CrossKai"],
   "license": "MIT",
   "environment": "*",
-  "entrypoints": {
-    "main": ["com.crosskai.livingcampfires.LivingCampfires"]
-  },
+  "entrypoints": {"main": ["com.crosskai.livingcampfires.LivingCampfires"]},
   "depends": {
     "fabricloader": ">=0.16.9",
     "minecraft": "~1.21.4",
     "java": ">=21",
     "fabric-api": ">=0.119.4"
-  }
+  },
+  "mixins": ["livingcampfires.mixins.json"]
 }
